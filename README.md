@@ -1,7 +1,7 @@
 # TKDA-workflow
 Tar Kiln Feature Detection Workflow (TKDA)
 
-This repsoitory contains the R and FIJI code required to run the Tar Kiln Feature Detection Workflow (TKDA), as well as a series of example raster DEM datasets.
+This repository contains the R and FIJI code required to run the Tar Kiln Feature Detection Workflow (TKDA), as well as a series of example raster DEM datasets.
 
 
 
