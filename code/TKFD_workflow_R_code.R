@@ -96,7 +96,7 @@ FIJI.output$r_units = FIJI.output$Radius..pixels. * res(rast)[1] # convert radiu
 FIJI.output = FIJI.output[FIJI.output$ID != 0, ]
 FIJI.output = FIJI.output[FIJI.output$Radius..pixels. > 6, ] # exclude outputs that have too small of a diameter
 borderline.score = subset(FIJI.output, Score >= .55) # exclude outputs that are not very circular
-FIJI.output  = rbind(FIJI.output, borderline.score ) # create final tabel of tar kilns
+FIJI.output  = rbind(FIJI.output, borderline.score ) # create final label of tar kilns
 
 # assign spatial information to the HCT results from FIJI
 if (nrow(FIJI.output)<1){out = paste0("No kilns detected in ", lidar.name)} else {
@@ -177,8 +177,8 @@ tar.kilns = subset(kiln.data, kiln.data$kiln== "yes") # dataset of tar kilns as 
 # Part 2.5: Export results
 
 #export results as shapefile 
-shapefile(tar.kilns, paste0("./output/",lidar.name,"_tar_kilns.shp"), overwrite = T)
-shapefile(all.possible.kilns, paste0("./output/",lidar.name,"_all_possible_tar_kilns.shp"), overwrite = T)
+shapefile(tar.kilns, paste0("./shapefile_output/",lidar.name,"_tar_kilns.shp"), overwrite = T)
+shapefile(all.possible.kilns, paste0("./shapefile_output/",lidar.name,"_all_possible_tar_kilns.shp"), overwrite = T)
 out = paste0(lidar.name, " was successfully completed.") # print completion statement
 } 
 }
