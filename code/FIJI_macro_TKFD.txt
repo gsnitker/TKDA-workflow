@@ -1,0 +1,52 @@
+// Macro for FIJI to perform Hough Circle Transformation to find Tar Kilns in Lidar Data
+// Grant Snitker
+// USFS-SRS, Athens, GA 
+// 12.29.2020
+
+  folders = getArgument;
+  delimiter = "*";
+  parts=split(folders, delimiter);
+  dir = parts[0];
+  dir2 = parts[1];
+  n = 1;
+  processFolder(dir);
+  print("Hough Circle Transformation Complete");
+  saveAs("Results", dir2+"_FIJI_results.csv");
+  run("Quit");
+  
+  
+
+
+  function processFolder(dir) {
+     list = getFileList(dir);
+     for (i=0; i<list.length; i++) {
+      if (endsWith(list[i], '.jpg')){ 
+     processImage(dir, list[i]);
+     }
+            wait(2000);
+      }
+  }
+
+  function processImage(dir, name) {
+     print(n++, name, "is processing");
+     open(dir+name);
+     setOption("BlackBackground", false);
+           run("Convert to Mask");
+           run("Hough Circle Transform","minRadius=6, maxRadius=30, inc=1, minCircles=1, maxCircles=65535, threshold=0.5, resolution=1000, ratio=1.0, bandwidth=10, local_radius=10,  reduce show_mask results_table");
+            index = lastIndexOf(name , "."); 
+            if (index!=-1) name  = substring(name, 0, index);      
+            setResult("chunk", nResults, name);
+            updateResults();
+            //title = "Hough Circles Measured?";
+            //msg = "Has the results table finished updating? If so, click \"OK\".";
+            //waitForUser(title, msg);
+           while (!isOpen("Centroid overlay")) {
+           wait(100);
+            }
+           wait(2000);
+           while (nImages>0) { 
+           selectImage(nImages); 
+           close(); 
+           } 
+    print(n++, name, "complete.");
+  }
