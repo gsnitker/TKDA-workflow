@@ -12,4 +12,6 @@ Download FIJI version 2.1.0/1.53c for Windows, Mac, and Linux at https://imagej.
 
 Download RStudio version 1.4.1103 for Windows, Mac, and Linux at https://www.rstudio.com/products/rstudio/download/.
 
+
+
 Additional information regarding the operation of the TKFD-workflow, required datasets, and optional configurations can be found in the TKFD User Guide. 
