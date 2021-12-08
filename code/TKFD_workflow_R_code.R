@@ -3,27 +3,24 @@
 # Grant Snitker - USFS Southern Research Station / ORISE
 # grant.snitker@uga.edu
 
-# Manuscript submitted to the Journal of Archaeological Science
+# Manuscript submitted to the Journal of Archaeological Science Reports
 # Please do not cite/distribute without author's permission
 
 # Preamble
 
 # load all libraries
 rm(list = ls())
-library(imager)
-library(rgeos)
-library(sp)
-library(raster)
-library(tools)
-library(dplyr)
-library(tidyr)
-library(rgdal)
-library(sf)
-library(tidyverse)
-library(reshape2)
-library(geosphere)
-library(parallel)
-library(doParallel)
+library(imager) # version 0.42.3
+library(rgeos) # version 0.5-5
+library(sp) # version 1.4-4
+library(raster) # version 3.3-13
+library(tools) # version 4.0.3 
+library(rgdal) # version 1.5-18
+library(sf) # version 0.9-6
+library(tidyverse) # version 1.3.0
+library(reshape2) # version 1.4.4
+library(geosphere) # version 1.5-10
+library(doParallel) # version 1.0.16
 
 # set options and number of cores for parallel processing
 options(warn=-1)
@@ -34,9 +31,8 @@ num.cores = detectCores()-1
 # Load lidar DEM file names 
 LIDAR.list = list.files("./data/Lidar_data/") %>% file_path_sans_ext(.) %>% noquote(.)
 #LIDAR.list
-
+l=1
 ##### Part 2: Define function for running TKFD
-l = 1
 ### Part 2.1: Load lidar DEM data, split into computational chunks, and run canny edges detector on raster data
 run.paralell = function(l){
   lidar.name = LIDAR.list[l]
@@ -65,10 +61,10 @@ for (i in 1:length(grid)){
 
 # Hough Circle Transformation (HCT) is performed using the UCB Vision Sciences Plugin available in FIJI. For information on activating this plugin, see https://imagej.net/plugins/hough-circle-transform.
 
-# The following parameters for Hough Circle Transformation (HCT) plugin are used in TKFD. These are adjustable by the user for other appliactions. Any adjustments to tehse values must me made in the 'FIJI_macro_TKFD.txt' macro script included in this GitHub repository.
+# The following parameters for Hough Circle Transformation (HCT) plugin are used in TKFD. These are adjustable by the user for other applications. Any adjustments to these values must me made in the 'FIJI_macro_TKFD.txt' macro script included in this GitHub repository.
 
 # # Advanced mode
-# # min radius: 8
+# # min radius: 6
 # # max radius 30
 # # radius search increment:1
 # # default max number to be found: 65535
@@ -91,7 +87,7 @@ FIJI.output = read.csv(paste0("./FIJI_output/", lidar.name, "_FIJI_results.csv")
 if (ncol(FIJI.output)<5){out = paste0("No kilns detected in ", lidar.name)} else {
 # replace zeros with NAs in chunk column
 FIJI.output$chunk[FIJI.output$chunk == 0] = NA
-FIJI.output = FIJI.output %>% tidyr::fill(chunk, .direction = c("down")) # fill out tabel of results
+FIJI.output = FIJI.output %>% tidyr::fill(chunk, .direction = c("down")) # fill out table of results
 FIJI.output$r_units = FIJI.output$Radius..pixels. * res(rast)[1] # convert radius to units, ft in this case; this only works if the measurements are in linear units (e.g. meters, feet)
 FIJI.output = FIJI.output[FIJI.output$ID != 0, ]
 FIJI.output = FIJI.output[FIJI.output$Radius..pixels. > 6, ] # exclude outputs that have too small of a diameter
@@ -173,12 +169,15 @@ kiln.data$LIDAR = as.character(lidar.name) #record the lidar DEM name for refere
 kiln.data = remove.duplicates(kiln.data) # remove any possible duplicates
 all.possible.kilns = kiln.data # dataset of all possible kilns 
 tar.kilns = subset(kiln.data, kiln.data$kiln== "yes") # dataset of tar kilns as determined by the criteria tally
+tar.kilns@data = tar.kilns@data %>% select(2,7,12,13,14,15,16) # drop unneeded columns
+colnames(tar.kilns@data) = c("op_chunk", "CHT_score", "radius_m", "x_coord", 
+                             "y_coord", "kiln_elev","out_elev")   # rename remaining columns
+tar.kilns@data$index = c(1:length(tar.kilns@data[,1])) # add index column
+tar.kilns@data = tar.kilns@data %>% relocate(index) # move index to from of the data.frame
 
 # Part 2.5: Export results
-
 #export results as shapefile 
 shapefile(tar.kilns, paste0("./shapefile_output/",lidar.name,"_tar_kilns.shp"), overwrite = T)
-shapefile(all.possible.kilns, paste0("./shapefile_output/",lidar.name,"_all_possible_tar_kilns.shp"), overwrite = T)
 out = paste0(lidar.name, " was successfully completed.") # print completion statement
 } 
 }
@@ -193,6 +192,8 @@ invisible(clusterEvalQ(cl, c(library(imager),library(rgeos),library(sp),
                        library(raster),library(tools),library(rgdal),
                        library(sf),library(tidyverse),library(reshape2),
                        library(geosphere),library(parallel),library(doParallel)))) # all required libraries
-ptm <- proc.time() # start time
+start_time <- Sys.time()
 output = parLapply(cl,1:length(LIDAR.list),run.paralell)
 stopCluster(cl)
+end_time <- Sys.time()
+end_time - start_time
